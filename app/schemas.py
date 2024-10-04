@@ -35,6 +35,8 @@ class Debt(DebtBase):
 class SettingsBase(BaseModel):
     key: str
     value: str
+    reminder_time: int = None
+    currency: str = None
 
 class SettingsCreate(SettingsBase):
     pass
@@ -52,7 +54,13 @@ class UserBase(BaseModel):
     username: str
     email: str
 
-class UserCreate(UserBase):
+class UserCreate(BaseModel):
+    username: str
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    username: str
     password: str
 
 class User(UserBase):

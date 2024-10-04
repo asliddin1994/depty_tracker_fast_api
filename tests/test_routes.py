@@ -1,11 +1,22 @@
 import pytest
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../app')))
 from fastapi.testclient import TestClient
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../app')))
 from app.main import app
 
 client = TestClient(app)
+
+@pytest.fixture
+def register_user():
+    response = client.post("/api/register/", json={
+        "username": "testuser",
+        "email": "test@example.com",
+        "password": "test123"
+    })
+    assert response.status_code == 201
+    return response.json()
 
 def test_create_debt():
     response = client.post("/api/debts/", json={
@@ -41,24 +52,16 @@ def test_register():
         "email": "test@example.com",
         "password": "test123"
     })
-    assert response.status_code == 200
+    assert response.status_code == 201  # Muvaffaqiyatli ro'yxatdan o'tish
     assert response.json()["username"] == "testuser"
 
-def test_login():
-    # Avval ro'yxatdan o'tish
-    client.post("/api/register/", json={
-        "username": "testuser",
-        "email": "test@example.com",
-        "password": "test123"
-    })
-
-    # Tizimga kirish
+def test_login(register_user):
     response = client.post("/api/login/", json={
         "username": "testuser",
-        "password": "testpassword"
+        "password": "test123"  # To'g'ri parol
     })
     assert response.status_code == 200
-    assert response.json()["message"] == "Successfully logged in"
+    assert "access_token" in response.json()  # Token qaytganligini tekshirish
 
 def test_login_invalid_credentials():
     response = client.post("/api/login/", json={
@@ -66,4 +69,4 @@ def test_login_invalid_credentials():
         "password": "wrongpassword"
     })
     assert response.status_code == 401
-    assert response.json()["detail"] == "parol yoki username notogri"
+    assert response.json()["detail"] == "parol yoki username notog'ri"
